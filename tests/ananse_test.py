@@ -4,7 +4,7 @@ import numpy as np
 
 def main():
     test_run = Ananse()
-    imports = test_run.import_naive_results(path="./")
+    imports = test_run.import_naive_results(path=".")
 
     data = test_run.deduplicate_dataframe(imports, ['title', 'abstract'])
 

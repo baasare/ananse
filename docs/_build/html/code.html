@@ -90,11 +90,11 @@
 <span id="code-docs"></span><h1>Code docs<a class="headerlink" href="#module-ananse" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="ananse.Ananse">
-<em class="property">class </em><code class="sig-prename descclassname">ananse.</code><code class="sig-name descname">Ananse</code><a class="headerlink" href="#ananse.Ananse" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ananse.</code><code class="sig-name descname">Ananse</code><a class="reference internal" href="_modules/ananse.html#Ananse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse" title="Permalink to this definition">¶</a></dt>
 <dd><p>A python package to partially automate search term selection and write search strategies for systematic reviews</p>
 <dl class="method">
 <dt id="ananse.Ananse.create_dtm">
-<code class="sig-name descname">create_dtm</code><span class="sig-paren">(</span><em class="sig-param">doc</em>, <em class="sig-param">keywords</em>, <em class="sig-param">min_len=2</em>, <em class="sig-param">max_len=3</em>, <em class="sig-param">dfm_type=''</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.create_dtm" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">create_dtm</code><span class="sig-paren">(</span><em class="sig-param">doc</em>, <em class="sig-param">keywords</em>, <em class="sig-param">min_len=2</em>, <em class="sig-param">max_len=3</em>, <em class="sig-param">dfm_type='keywords'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.create_dtm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.create_dtm" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method creates a Document-Term Matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -115,7 +115,7 @@
 
 <dl class="method">
 <dt id="ananse.Ananse.create_network">
-<code class="sig-name descname">create_network</code><span class="sig-paren">(</span><em class="sig-param">im</em>, <em class="sig-param">keywords</em>, <em class="sig-param">draw_graph=False</em>, <em class="sig-param">save_network=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.create_network" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">create_network</code><span class="sig-paren">(</span><em class="sig-param">im</em>, <em class="sig-param">keywords</em>, <em class="sig-param">draw_graph=False</em>, <em class="sig-param">save_network=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.create_network"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.create_network" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method creates a graph when given a Document-Term Matrix in the form of an incidence matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -135,7 +135,7 @@
 
 <dl class="method">
 <dt id="ananse.Ananse.deduplicate_dataframe">
-<code class="sig-name descname">deduplicate_dataframe</code><span class="sig-paren">(</span><em class="sig-param">DataFrame</em>, <em class="sig-param">columns</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.deduplicate_dataframe" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">deduplicate_dataframe</code><span class="sig-paren">(</span><em class="sig-param">DataFrame</em>, <em class="sig-param">columns</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.deduplicate_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.deduplicate_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>this method duplicated a DataFrame based on certain columns
 it considers on the first occurrence of a row as unique and deletes(inplace=True) other duplicates</p>
 <dl class="field-list simple">
@@ -153,7 +153,7 @@ it considers on the first occurrence of a row as unique and deletes(inplace=True
 
 <dl class="method">
 <dt id="ananse.Ananse.dtm_to_dataframe">
-<code class="sig-name descname">dtm_to_dataframe</code><span class="sig-paren">(</span><em class="sig-param">dtm</em>, <em class="sig-param">keywords</em>, <em class="sig-param">doc</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.dtm_to_dataframe" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">dtm_to_dataframe</code><span class="sig-paren">(</span><em class="sig-param">dtm</em>, <em class="sig-param">keywords</em>, <em class="sig-param">doc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.dtm_to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.dtm_to_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method created a data frame of a Document-Term Matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -171,7 +171,7 @@ it considers on the first occurrence of a row as unique and deletes(inplace=True
 
 <dl class="method">
 <dt id="ananse.Ananse.extract_terms">
-<code class="sig-name descname">extract_terms</code><span class="sig-paren">(</span><em class="sig-param">DataFrame</em>, <em class="sig-param">min_len=2</em>, <em class="sig-param">max_len=4</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.extract_terms" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">extract_terms</code><span class="sig-paren">(</span><em class="sig-param">DataFrame</em>, <em class="sig-param">min_len=2</em>, <em class="sig-param">max_len=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.extract_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.extract_terms" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method uses the RAKE Algorithm to extract keywords from the text column of the DataFrame of naive search
 results.</p>
 <dl class="field-list simple">
@@ -190,7 +190,7 @@ results.</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.find_cutoff">
-<code class="sig-name descname">find_cutoff</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">method</em>, <em class="sig-param">importance_method</em>, <em class="sig-param">degrees=2</em>, <em class="sig-param">knot_num=1</em>, <em class="sig-param">percent=0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.find_cutoff" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">find_cutoff</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">method</em>, <em class="sig-param">importance_method</em>, <em class="sig-param">degrees=2</em>, <em class="sig-param">knot_num=1</em>, <em class="sig-param">percent=0.8</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.find_cutoff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.find_cutoff" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method finds the cutoff for a graph network using either cumulative or spline method of cutting of
 the degree distribution</p>
 <dl class="field-list simple">
@@ -212,7 +212,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.find_knots">
-<code class="sig-name descname">find_knots</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">degrees</em>, <em class="sig-param">knot_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.find_knots" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">find_knots</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">degrees</em>, <em class="sig-param">knot_num=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.find_knots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.find_knots" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method find the knots of a two sets of values</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -231,7 +231,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.fit_spline">
-<code class="sig-name descname">fit_spline</code><span class="sig-paren">(</span><em class="sig-param">t</em>, <em class="sig-param">c</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.fit_spline" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fit_spline</code><span class="sig-paren">(</span><em class="sig-param">t</em>, <em class="sig-param">c</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.fit_spline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.fit_spline" title="Permalink to this definition">¶</a></dt>
 <dd><p>This methods fits t = knots, c = spline coefficients, k = B-spline order to a B-spline</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -249,7 +249,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.get_centrality">
-<code class="sig-name descname">get_centrality</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">method</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.get_centrality" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_centrality</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">method</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.get_centrality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.get_centrality" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method evaluate the node importance of a graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -266,7 +266,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.get_keywords">
-<code class="sig-name descname">get_keywords</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">importance_method</em>, <em class="sig-param">cutoff_strengths</em>, <em class="sig-param">save_network=True</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.get_keywords" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_keywords</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">importance_method</em>, <em class="sig-param">cutoff_strengths</em>, <em class="sig-param">save_network=True</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.get_keywords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.get_keywords" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -285,7 +285,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.import_naive_results">
-<code class="sig-name descname">import_naive_results</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">save_dataset=False</em>, <em class="sig-param">save_directory=None</em>, <em class="sig-param">clean_dataset=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.import_naive_results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">import_naive_results</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">save_dataset=False</em>, <em class="sig-param">save_directory=None</em>, <em class="sig-param">clean_dataset=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.import_naive_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.import_naive_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method imports the search results from a specified path</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -304,7 +304,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.make_importance">
-<code class="sig-name descname">make_importance</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">importance_method</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.make_importance" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">make_importance</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">importance_method</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.make_importance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.make_importance" title="Permalink to this definition">¶</a></dt>
 <dd><p>This methods creates a dataframe made up of node names with their importance and their rank (index) from a graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -321,7 +321,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.plot_degree_distribution">
-<code class="sig-name descname">plot_degree_distribution</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">save_plot=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.plot_degree_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_degree_distribution</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">save_plot=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.plot_degree_distribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.plot_degree_distribution" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method plots a distribution of the graph degree</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -339,7 +339,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.plot_degree_histogram">
-<code class="sig-name descname">plot_degree_histogram</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">save_plot=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.plot_degree_histogram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_degree_histogram</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">save_plot=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.plot_degree_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.plot_degree_histogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method plots a histogram of the graph degree</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -357,7 +357,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.plot_rank_degree_distribution">
-<code class="sig-name descname">plot_rank_degree_distribution</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">save_plot=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.plot_rank_degree_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_rank_degree_distribution</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">save_plot=False</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.plot_rank_degree_distribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.plot_rank_degree_distribution" title="Permalink to this definition">¶</a></dt>
 <dd><p>This methods plots a rank degree distribution of the graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -375,7 +375,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.reduce_graph">
-<code class="sig-name descname">reduce_graph</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">importance_method</em>, <em class="sig-param">cutoff_strengths</em>, <em class="sig-param">draw_reduced_graph=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.reduce_graph" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reduce_graph</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">importance_method</em>, <em class="sig-param">cutoff_strengths</em>, <em class="sig-param">draw_reduced_graph=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.reduce_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.reduce_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>This methods generated a graph consisting of only important nodes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -394,7 +394,7 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.remove_punctuations">
-<code class="sig-name descname">remove_punctuations</code><span class="sig-paren">(</span><em class="sig-param">raw_string</em><span class="sig-paren">)</span><a class="headerlink" href="#ananse.Ananse.remove_punctuations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">remove_punctuations</code><span class="sig-paren">(</span><em class="sig-param">raw_string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse.html#Ananse.remove_punctuations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.remove_punctuations" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method removes all symbols and numbers from a string</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
