@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Guide &#8212; Ananse 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Code docs" href="code.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Ananse</a></h1>
+
+
+
+<p class="blurb">Python implementation of the R package litsearchr.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=baasare&repo=ananse&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="about.html">About this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Code docs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="code.html" title="previous chapter">Code docs</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="guide">
+<h1>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="directly-from-the-repository">
+<h3>Directly from the repository<a class="headerlink" href="#directly-from-the-repository" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/baasare/ananse.git
+python ananse/setup.py install
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ananse</span> <span class="kn">import</span> <span class="n">Ananse</span>
+
+<span class="c1"># Create an object of the package</span>
+<span class="n">review</span> <span class="o">=</span> <span class="n">Ananse</span><span class="p">()</span>
+
+<span class="c1"># Import your naive search results from a directory</span>
+<span class="n">imports</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">import_naive_results</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;path/&quot;</span><span class="p">)</span>
+
+<span class="n">deduplication_columns</span> <span class="o">=</span>  <span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;abstract&#39;</span><span class="p">]</span>
+
+<span class="c1">#de-duplicate the imported search results</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">deduplicate_dataframe</span><span class="p">(</span><span class="n">imports</span><span class="p">,</span> <span class="n">deduplication_columns</span><span class="p">)</span>
+
+<span class="c1">#extract keywords from article title and abstract as well as author and database tagged keywords</span>
+<span class="n">all_terms</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">extract_terms</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1">#create Document-Term Matrix, with columns as terms and rows as articles</span>
+<span class="n">dtm</span><span class="p">,</span> <span class="n">term_columns</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">create_dtm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">all_terms</span><span class="p">)</span>
+
+<span class="c1">#create co-occurrence network using Document-Term Matrix</span>
+<span class="n">graph_network</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">create_network</span><span class="p">(</span><span class="n">dtm</span><span class="p">,</span> <span class="n">term_columns</span><span class="p">)</span>
+
+<span class="c1">#plot degree and rank distribution of the network</span>
+<span class="n">review</span><span class="o">.</span><span class="n">plot_degree_distribution</span><span class="p">(</span><span class="n">graph_network</span><span class="p">)</span>
+<span class="n">review</span><span class="o">.</span><span class="n">plot_rank_degree_distribution</span><span class="p">(</span><span class="n">graph_network</span><span class="p">)</span>
+<span class="n">review</span><span class="o">.</span><span class="n">plot_degree_histogram</span><span class="p">(</span><span class="n">graph_network</span><span class="p">)</span>
+
+
+<span class="c1">#Determine cutoff for the relevant keywords</span>
+<span class="n">cutoff_strengths</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">find_cutoff</span><span class="p">(</span><span class="n">graph_network</span><span class="p">,</span> <span class="s2">&quot;spline&quot;</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">knot_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">percent</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+
+<span class="c1">#reduce graph with only relevant keywords</span>
+<span class="n">reduced_graph</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">reduce_graph</span><span class="p">(</span><span class="n">graph_network</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">cutoff_strengths</span><span class="p">)</span>
+
+<span class="c1">#get suggested keywords and save to a csv file</span>
+<span class="n">suggested_keywords</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">get_keywords</span><span class="p">(</span><span class="n">reduced_graph</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">suggested_keywords</span><span class="p">:</span>
+   <span class="nb">print</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>This is a python implementation of the R package as mentioned in paper
+<a class="reference external" href="https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13268">An automated approach to identifying search terms for systematic
+reviews using keyword co‐occurrence networks by Eliza M. Grames, Andrew
+N. Stillman Morgan W. Tingley and Chris S.
+Elphick</a></p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2020, Bernard Atiemo Asare.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/example.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/baasare/ananse" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
