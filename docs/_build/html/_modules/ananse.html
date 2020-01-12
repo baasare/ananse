@@ -1,0 +1,622 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>ananse &#8212; Ananse 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for ananse</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">rake_nltk</span> <span class="kn">import</span> <span class="n">Rake</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
+<span class="kn">import</span> <span class="nn">scipy.interpolate</span> <span class="k">as</span> <span class="nn">interpolate</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">CountVectorizer</span>
+
+
+<div class="viewcode-block" id="Ananse"><a class="viewcode-back" href="../code.html#ananse.Ananse">[docs]</a><span class="k">class</span> <span class="nc">Ananse</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">     A python package to partially automate search term selection and write search strategies for systematic reviews</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;abstract&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;keywords&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                               <span class="s1">&#39;authors&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                               <span class="s1">&#39;affiliation&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;volume&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;issue&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;startpage&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                               <span class="s1">&#39;endpage&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;doi&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;database&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wos_li</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scopus_li</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;[@_!#$%^&amp;*()&lt;&gt;?•°/|}{~:]&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;abstract&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raked_keywords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_keywords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_keywords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">terms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centrality</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dfm_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="c1"># self.t, self.c, self.k, self.spline = None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cut_strengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deg_seq</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bad_chars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;•&#39;</span><span class="p">,</span> <span class="s1">&#39;°&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="s1">&#39;{&#39;</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="s1">&#39;±&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;©&#39;</span><span class="p">,</span> <span class="s1">&#39;`&#39;</span><span class="p">,</span> <span class="s1">&#39;’&#39;</span><span class="p">,</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Ananse.remove_punctuations"><a class="viewcode-back" href="../code.html#ananse.Ananse.remove_punctuations">[docs]</a>    <span class="k">def</span> <span class="nf">remove_punctuations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method removes all symbols and numbers from a string</span>
+
+<span class="sd">        :param raw_string: string with characters and numbers</span>
+<span class="sd">        :return: cleaned string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">raw_string</span> <span class="o">=</span> <span class="n">raw_string</span><span class="o">.</span><span class="n">translate</span><span class="p">({</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">):</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">&quot;1234567890&quot;</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">raw_string</span><span class="o">.</span><span class="n">translate</span><span class="p">({</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">):</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_chars</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="Ananse.import_naive_results"><a class="viewcode-back" href="../code.html#ananse.Ananse.import_naive_results">[docs]</a>    <span class="k">def</span> <span class="nf">import_naive_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">save_dataset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clean_dataset</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method imports the search results from a specified path</span>
+
+<span class="sd">        :param clean_dataset: if TRUE, de-duplicates search results after importing</span>
+<span class="sd">        :param save_dataset: if TRUE, saves the full search results to a .csv</span>
+<span class="sd">        :param save_directory: the path to a directory where search results will be saved if save_dataset is set to TRUE</span>
+<span class="sd">        :param path: path containing the naive search results files</span>
+<span class="sd">        :return: a pandas data frame consisting of assembled search results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">wos_li</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">scopus_li</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># import all files in the directory, automatically detect on file name extension [supports WOS and Scopus]</span>
+
+        <span class="n">all_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">all_files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">):</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">quotechar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">wos_li</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">):</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="n">scopus_li</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+        <span class="c1"># check if anything was imported</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wos_li</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># check to see if any web of science results was imported</span>
+
+            <span class="c1"># concatenate files from same database into DataFrame</span>
+            <span class="n">wos_dataset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">wos_li</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># merge article titles and abstract to form text from which keywords will be extracted</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[[</span><span class="s1">&#39;TI&#39;</span><span class="p">,</span> <span class="s1">&#39;AB&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">wos_text</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_punctuations</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">text</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;UT&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wos_text</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;TI&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;abstract&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;AB&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;keywords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;DE&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;DT&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;authors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;AU&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;affiliation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;C1&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;SO&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;PY&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;VL&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;issue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;IS&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;startpage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;BP&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;endpage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;EP&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;doi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;DI&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wos_dataset</span><span class="p">[</span><span class="s1">&#39;LA&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;database&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">([</span><span class="s1">&#39;WOS&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">wos_dataset</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">scopus_li</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># check to see if any scopus results was imported</span>
+
+            <span class="c1"># concatenate files from same database into DataFrame</span>
+            <span class="n">scopus_dataset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">scopus_li</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">text</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[[</span><span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;Abstract&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">scopus_text</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_punctuations</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">text</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;EID&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">scopus_text</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;abstract&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;abstract&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Abstract&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;keywords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;keywords&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Author Keywords&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Document Type&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;authors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;authors&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Authors&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;affiliation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;affiliation&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Affiliations&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Source&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Year&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;issue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;issue&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Issue&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;startpage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;startpage&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Page start&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;endpage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;endpage&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Page end&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;doi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;doi&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;DOI&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;language&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span>
+                    <span class="p">[</span><span class="s1">&#39;English&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;database&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">[</span><span class="s1">&#39;database&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">scopus_dataset</span><span class="p">[</span><span class="s1">&#39;Source&#39;</span><span class="p">])</span>
+
+        <span class="c1"># merge all search database results into a dataframe</span>
+
+        <span class="n">data_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">search_results</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">save_dataset</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">save_directory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data_frame</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_directory</span> <span class="o">+</span> <span class="s1">&#39;imported_results.csv&#39;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data_frame</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;data/IMPORTED/imported_results.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">clean_dataset</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">data_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deduplicate_dataframe</span><span class="p">(</span><span class="n">data_frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data_frame</span></div>
+
+<div class="viewcode-block" id="Ananse.deduplicate_dataframe"><a class="viewcode-back" href="../code.html#ananse.Ananse.deduplicate_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">deduplicate_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        this method duplicated a DataFrame based on certain columns</span>
+<span class="sd">        it considers on the first occurrence of a row as unique and deletes(inplace=True) other duplicates</span>
+
+<span class="sd">        :param DataFrame: a pandas DataFrame to be deduplicated</span>
+<span class="sd">        :param columns: a list of fields to check for duplicate values and deduplicated the dataframe</span>
+<span class="sd">        :return: DataFrame with removed duplicate rows depending on Arguments passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">DataFrame</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">column</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">DataFrame</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">column</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="Ananse.extract_terms"><a class="viewcode-back" href="../code.html#ananse.Ananse.extract_terms">[docs]</a>    <span class="k">def</span> <span class="nf">extract_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method uses the RAKE Algorithm to extract keywords from the text column of the DataFrame of naive search</span>
+<span class="sd">        results.</span>
+
+
+<span class="sd">        :param DataFrame:</span>
+<span class="sd">        :param min_len: minimum keyword length</span>
+<span class="sd">        :param max_len: maximum keyword length</span>
+<span class="sd">        :return: a list consisting of  a combination of extracted keywords and author keyword</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">Rake</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="s1">&#39;english&#39;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="n">min_len</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">max_len</span><span class="p">,</span>
+                 <span class="n">punctuations</span><span class="o">=</span><span class="s1">&#39;!&quot;#$%&amp;</span><span class="se">\&#39;</span><span class="s1">()*+,-),./“:;≥•°≤&lt;=|±+‘&gt;©?@[</span><span class="se">\\</span><span class="s1">]^_`{|}~&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Extraction using the text column the text.</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
+
+        <span class="n">r</span><span class="o">.</span><span class="n">extract_keywords_from_sentences</span><span class="p">(</span><span class="n">texts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raked_keywords</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get_ranked_phrases</span><span class="p">()</span>  <span class="c1"># raked keywords</span>
+
+        <span class="c1"># Extract author keywords from naive search results and remove blank values</span>
+        <span class="n">author_keywords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">[</span><span class="s1">&#39;keywords&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_keywords</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">author_keywords</span> <span class="k">if</span>
+                              <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;nan&#39;</span><span class="p">]</span>  <span class="c1"># removing nan values from list of author keywords</span>
+
+        <span class="c1"># merge all keywords and split into list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_keywords</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_keywords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_keywords</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># merge raked keywords with author keywords</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raked_keywords</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_keywords</span>
+
+        <span class="c1"># loop through all keywords, remove every keyword with a digit in it and create new cleaned list</span>
+        <span class="n">digits_cleaned_all_keywords</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">keywords</span> <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">char</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)]</span>
+
+        <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;[@_!#$%^&amp;*()&lt;&gt;?•°/|}{~:]&#39;</span><span class="p">)</span>
+
+        <span class="c1"># loop through all keywords, remove every keyword with a symbol in it using regex and create new cleaned list</span>
+        <span class="n">all_keywords</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">digits_cleaned_all_keywords</span> <span class="k">if</span> <span class="p">(</span><span class="n">regex</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)]</span>
+
+        <span class="c1"># Convert keyword list to set and then back to list to deduplicate keyword list</span>
+        <span class="n">all_keywords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">all_keywords</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_keywords</span></div>
+
+<div class="viewcode-block" id="Ananse.create_dtm"><a class="viewcode-back" href="../code.html#ananse.Ananse.create_dtm">[docs]</a>    <span class="k">def</span> <span class="nf">create_dtm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dfm_type</span><span class="o">=</span><span class="s2">&quot;keywords&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a Document-Term Matrix</span>
+
+
+<span class="sd">        :param min_len: minimum keyword length</span>
+<span class="sd">        :param max_len: maximum keyword length</span>
+<span class="sd">        :param doc: a list of article title, abstract or any article property</span>
+<span class="sd">        :param keywords: a list of keywords to use for the Document-Term Matrix</span>
+<span class="sd">        :param dfm_type: whether the dfm should be created based on document tokens or a restricted list of keywords</span>
+<span class="sd">                [token, keywords]</span>
+<span class="sd">        :return: a multidimensional array of a Document-Term Matrix and a list of terms(columns)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">doc</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="n">cleaned_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">doc</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;nan&#39;</span><span class="p">]</span>
+        <span class="n">doc_set</span> <span class="o">=</span> <span class="n">cleaned_list</span>
+
+        <span class="n">vec</span> <span class="o">=</span> <span class="n">CountVectorizer</span><span class="p">(</span><span class="n">ngram_range</span><span class="o">=</span><span class="p">(</span><span class="n">min_len</span><span class="p">,</span> <span class="n">max_len</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">dfm_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;token&quot;</span><span class="p">:</span>
+            <span class="n">tf</span> <span class="o">=</span> <span class="n">vec</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">doc_set</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">dfm_type</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">dfm_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;keywords&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">keywords</span><span class="p">:</span>
+                <span class="n">vec</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+                <span class="n">tf</span> <span class="o">=</span> <span class="n">vec</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">doc_set</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tf</span> <span class="o">=</span> <span class="n">vec</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">doc_set</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">terms</span> <span class="o">=</span> <span class="n">vec</span><span class="o">.</span><span class="n">get_feature_names</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">terms</span></div>
+
+<div class="viewcode-block" id="Ananse.dtm_to_dataframe"><a class="viewcode-back" href="../code.html#ananse.Ananse.dtm_to_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">dtm_to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtm</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method created a data frame of a Document-Term Matrix</span>
+
+<span class="sd">        :param dtm:  a multidimensional array of a Document-Term Matrix</span>
+<span class="sd">        :param keywords: a list of keywords to use for the Document-Term Matrix</span>
+<span class="sd">        :param doc: a list of article title, abstract or any article property</span>
+<span class="sd">        :return: a data frame of a Document-Term Matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dfm_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">dtm</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">keywords</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dfm_dataframe</span></div>
+
+<div class="viewcode-block" id="Ananse.create_network"><a class="viewcode-back" href="../code.html#ananse.Ananse.create_network">[docs]</a>    <span class="k">def</span> <span class="nf">create_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">im</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">draw_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_network</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a graph when given a Document-Term Matrix in the form of an incidence matrix</span>
+
+<span class="sd">        :param im: the incidence matrix</span>
+<span class="sd">        :param keywords: keywords for labelling</span>
+<span class="sd">        :param draw_graph: if TRUE, graph is drawn</span>
+<span class="sd">        :param save_network: if TRUE, saves the graph to a .png</span>
+<span class="sd">        :param save_directory: the path to a directory where search results will be saved if save_dataset is set to TRUE</span>
+<span class="sd">        :return: a networkx graph</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">A</span> <span class="o">=</span> <span class="n">im</span>
+
+        <span class="n">keywords</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keywords</span><span class="p">))]</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span>
+            <span class="c1"># loop through all rows(article) in multidimensional array and the index of each column(keyword) with</span>
+            <span class="c1"># a value of 1 and store the column indices in a list</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">row</span><span class="p">))</span> <span class="k">if</span> <span class="n">e</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># make a combination of this column indices to show how their connection (edge)</span>
+            <span class="n">perm</span> <span class="o">=</span> <span class="n">combinations</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">perm</span><span class="p">):</span>
+                <span class="c1"># store every single combination made</span>
+                <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">network_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+        <span class="n">num_of_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network_graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
+
+        <span class="n">old_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_of_nodes</span><span class="p">)]</span>
+        <span class="n">new_labels</span> <span class="o">=</span> <span class="n">keywords</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">old_labels</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">))</span>
+
+        <span class="n">H</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network_graph</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">draw_graph</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">with_label</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">H</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">save_network</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">save_directory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_directory</span> <span class="o">+</span> <span class="s2">&quot;simple_path.png.png&quot;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;degree_distribution .png&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">H</span></div>
+
+<div class="viewcode-block" id="Ananse.get_centrality"><a class="viewcode-back" href="../code.html#ananse.Ananse.get_centrality">[docs]</a>    <span class="k">def</span> <span class="nf">get_centrality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method evaluate the node importance of a graph</span>
+
+<span class="sd">        :param g: a graph from which you find its node importance</span>
+<span class="sd">        :param method: the method for finding the node importance</span>
+<span class="sd">        :return: a dictionary containing nodes with their importance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;degree&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centrality</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">degree_centrality</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;closeness&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centrality</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;betweenness&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centrality</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">betweenness_centrality</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">centrality</span></div>
+
+<div class="viewcode-block" id="Ananse.plot_degree_distribution"><a class="viewcode-back" href="../code.html#ananse.Ananse.plot_degree_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">plot_degree_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">save_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method plots a distribution of the graph degree</span>
+
+<span class="sd">        :param g: graph whose degree distribution is to be plotted</span>
+<span class="sd">        :param save_plot: if save_plot=True saves the plot to a .png</span>
+<span class="sd">        :param save_directory: the path to a directory where search results will be saved if save_plot is set to TRUE</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+            <span class="n">deg</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">deg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deg_seq</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">deg_seq</span><span class="p">[</span><span class="n">deg</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">deg_seq</span><span class="p">[</span><span class="n">deg</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deg_seq</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">items</span><span class="p">],</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Network Distribution&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">save_plot</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">save_directory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_directory</span> <span class="o">+</span> <span class="s2">&quot;degree_distribution.png&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;degree_distribution.png&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Ananse.plot_degree_histogram"><a class="viewcode-back" href="../code.html#ananse.Ananse.plot_degree_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">plot_degree_histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">save_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method plots a histogram of the graph degree</span>
+
+<span class="sd">        :param g: graph whose degree distribution is to be plotted</span>
+<span class="sd">        :param save_plot: if save_plot=True saves the plot to a .png</span>
+<span class="sd">        :param save_directory: the path to a directory where search results will be saved if save_plot is set to TRUE</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">degree_sequence</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">degree</span><span class="p">()],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># degree sequence</span>
+
+        <span class="n">degreeCount</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">(</span><span class="n">degree_sequence</span><span class="p">)</span>
+        <span class="n">deg</span><span class="p">,</span> <span class="n">cnt</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">degreeCount</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="n">cnt</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.80</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Degree Histogram&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Count&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Degree&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="n">d</span> <span class="o">+</span> <span class="mf">0.4</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deg</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">deg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">save_plot</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">save_directory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_directory</span> <span class="o">+</span> <span class="s2">&quot;degree_distribution.png&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;degree_distribution.png&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Ananse.plot_rank_degree_distribution"><a class="viewcode-back" href="../code.html#ananse.Ananse.plot_rank_degree_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">plot_rank_degree_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">save_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This methods plots a rank degree distribution of the graph</span>
+
+<span class="sd">        :param g: graph whose degree distribution is to be plotted</span>
+<span class="sd">        :param save_plot: if save_plot=True saves the plot to a .png</span>
+<span class="sd">        :param save_directory: the path to a directory where search results will be saved if save_plot is set to TRUE</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">degree_sequence</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">degree</span><span class="p">()],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">d_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">degree_sequence</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">degree_sequence</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Degree rank plot&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;degree&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;rank&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">save_plot</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">save_directory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_directory</span> <span class="o">+</span> <span class="s2">&quot;degree_distribution.png&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;rank_degree_distribution.png&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Ananse.find_knots"><a class="viewcode-back" href="../code.html#ananse.Ananse.find_knots">[docs]</a>    <span class="k">def</span> <span class="nf">find_knots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">degrees</span><span class="p">,</span> <span class="n">knot_num</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method find the knots of a two sets of values</span>
+
+<span class="sd">        :param x: x values</span>
+<span class="sd">        :param y: y values</span>
+<span class="sd">        :param degrees: degrees of the spline</span>
+<span class="sd">        :param knot_num: number of knots of the spline</span>
+<span class="sd">        :return: t = knots, c = spline coefficients, k = B-spline order</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">splrep</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">degrees</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">knot_num</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">k</span></div>
+
+<div class="viewcode-block" id="Ananse.fit_spline"><a class="viewcode-back" href="../code.html#ananse.Ananse.fit_spline">[docs]</a>    <span class="k">def</span> <span class="nf">fit_spline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This methods fits t = knots, c = spline coefficients, k = B-spline order to a B-spline</span>
+
+<span class="sd">        :param t: knots</span>
+<span class="sd">        :param c: spline coefficients</span>
+<span class="sd">        :param k: B-spline order</span>
+<span class="sd">        :return: fitted B-spline</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spline</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">BSpline</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">extrapolate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spline</span></div>
+
+<div class="viewcode-block" id="Ananse.make_importance"><a class="viewcode-back" href="../code.html#ananse.Ananse.make_importance">[docs]</a>    <span class="k">def</span> <span class="nf">make_importance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This methods creates a dataframe made up of node names with their importance and their rank (index) from a graph</span>
+
+<span class="sd">        :param g: graph</span>
+<span class="sd">        :param importance_method: method to use to check node importance</span>
+<span class="sd">        :return: a data frame of rank, node importance and node name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">centrality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_centrality</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">)</span>
+        <span class="n">rank</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">centrality</span><span class="p">))]</span>
+        <span class="n">importance</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">centrality</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">node_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">centrality</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">lis</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rank</span><span class="p">,</span> <span class="n">importance</span><span class="p">,</span> <span class="n">node_names</span><span class="p">)]</span>
+        <span class="n">importance_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">lis</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rank&#39;</span><span class="p">,</span> <span class="s1">&#39;importance&#39;</span><span class="p">,</span> <span class="s1">&#39;nodenames&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">importance_data</span></div>
+
+<div class="viewcode-block" id="Ananse.find_cutoff"><a class="viewcode-back" href="../code.html#ananse.Ananse.find_cutoff">[docs]</a>    <span class="k">def</span> <span class="nf">find_cutoff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">knot_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">percent</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method finds the cutoff for a graph network using either cumulative or spline method of cutting of</span>
+<span class="sd">        the degree distribution</span>
+
+<span class="sd">        :param g: graph</span>
+<span class="sd">        :param method: method of finding cutoff</span>
+<span class="sd">        :param importance_method: method to use to check node importance</span>
+<span class="sd">        :param degrees: spline degree</span>
+<span class="sd">        :param knot_num: spline number of knots</span>
+<span class="sd">        :param percent: cutoff percentage for cumulative method</span>
+<span class="sd">        :return: cutoff strengths</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">importance_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_importance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;spline&quot;</span><span class="p">:</span>
+            <span class="n">knots</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_knots</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">importance_data</span><span class="p">[</span><span class="s2">&quot;rank&quot;</span><span class="p">]),</span> <span class="n">importance_data</span><span class="p">[</span><span class="s2">&quot;importance&quot;</span><span class="p">],</span> <span class="n">degrees</span><span class="p">,</span>
+                                          <span class="n">knot_num</span><span class="p">)</span>
+            <span class="n">cut_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">knots</span><span class="p">)]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cut_strengths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">importance_data</span><span class="o">.</span><span class="n">importance</span><span class="p">)[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cut_points</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;cumulative&quot;</span><span class="p">:</span>
+            <span class="n">cumulative_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">importance_data</span><span class="p">[</span><span class="s2">&quot;importance&quot;</span><span class="p">]))</span>
+            <span class="n">cum_str</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">cumulative_sum</span><span class="p">)</span>
+            <span class="n">cut_point</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cumulative_sum</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">cum_str</span> <span class="o">*</span> <span class="n">percent</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cut_strengths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">importance_data</span><span class="p">[</span><span class="s2">&quot;importance&quot;</span><span class="p">]))[</span><span class="nb">int</span><span class="p">(</span><span class="n">cut_point</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_strengths</span></div>
+
+<div class="viewcode-block" id="Ananse.reduce_graph"><a class="viewcode-back" href="../code.html#ananse.Ananse.reduce_graph">[docs]</a>    <span class="k">def</span> <span class="nf">reduce_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">,</span> <span class="n">cutoff_strengths</span><span class="p">,</span> <span class="n">draw_reduced_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This methods generated a graph consisting of only important nodes</span>
+
+<span class="sd">        :param g: graph</span>
+<span class="sd">        :param draw_reduced_graph: RUE, draws reduced graph</span>
+<span class="sd">        :param importance_method: method to use to check node importance</span>
+<span class="sd">        :param cutoff_strengths: cut off of the graph</span>
+<span class="sd">        :return: a list of important nodes and a reduced graph of only important nodes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">importance_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_importance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cutoff_strengths</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">cutoff_strengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">cutoff_strengths</span><span class="p">)</span>
+        <span class="n">importance_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">importance_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">importance_data</span><span class="p">[</span><span class="s1">&#39;importance&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">cutoff_strengths</span><span class="p">,</span> <span class="s2">&quot;nodenames&quot;</span><span class="p">])</span>
+        <span class="n">reduced_graph</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">importance_nodes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">draw_reduced_graph</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">reduced_graph</span><span class="p">,</span> <span class="n">with_label</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">reduced_graph</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">reduced_graph</span><span class="p">,</span> <span class="n">importance_nodes</span></div>
+
+<div class="viewcode-block" id="Ananse.get_keywords"><a class="viewcode-back" href="../code.html#ananse.Ananse.get_keywords">[docs]</a>    <span class="k">def</span> <span class="nf">get_keywords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">,</span> <span class="n">cutoff_strengths</span><span class="p">,</span> <span class="n">save_network</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param g: graph</span>
+<span class="sd">        :param importance_method: method to use to check node importance</span>
+<span class="sd">        :param cutoff_strengths: cut off of the graph</span>
+<span class="sd">        :param save_network: if save_network=True saves the keywords to a .csv</span>
+<span class="sd">        :param save_directory: path to a directory where suggested keywords will be saved if save_dataset is set to TRUE</span>
+<span class="sd">        :return: suggested keywords for final review</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reduced_graph</span><span class="p">,</span> <span class="n">importance_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_graph</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">importance_method</span><span class="p">,</span> <span class="n">cutoff_strengths</span><span class="p">)</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_punctuations</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">reduced_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()]</span>
+        <span class="n">suggested_keywords</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">keywords</span> <span class="k">if</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">suggested_keywords</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;keywords&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">save_network</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">save_directory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_directory</span> <span class="o">+</span> <span class="s1">&#39;relevant_keywords.csv&#39;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;relevant_keywords.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">suggested_keywords</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Ananse</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../code.html">Code docs</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Bernard Atiemo Asare.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

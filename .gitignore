@@ -1,0 +1,14 @@
+doctrees/
+_static
+_templates
+.buildinfo
+*.pyc
+__pycache__/
+venv/
+.vscode
+.idea/
+.ipynb_checkpoints
+.eggs
+ananse.egg-info/
+dist/
+build/
