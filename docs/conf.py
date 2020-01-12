@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 
 project = 'Ananse'
-copyright = '2020, Bernard Atiemo Asare'
-author = 'Bernard Atiemo Asare'
+copyright = '2020, Bernard Atiemo Asare & Amma Frimpomaa Frimpong-Boateng'
+author = 'Bernard Atiemo Asare & Amma Frimpomaa Frimpong-Boateng'
 
 # The full version, including alpha/beta/rc tags
 release = '1.0.0'

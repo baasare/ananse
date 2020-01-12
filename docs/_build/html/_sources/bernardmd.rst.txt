@@ -1,19 +1,15 @@
-About this project
-==========================
-The ``Ananse`` package is a python implementation of the ``litsearchr`` R package  designed to partially automate search term selection and writing search strategies for systematic reviews.
-
 Preparing a Search Strategy for a Systematic Review
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+===================================================
 
 Report by:
---------------------------------------------------------
+~~~~~~~~~~
 
 • Bernard Atiemo Asare
 
 • Amma Frimpomaa Frimpong-Boateng
 
 Writing the Naïve Search and Importing the Results:
---------------------------------------------------------
+---------------------------------------------------
 
 [1]When writing a naive search, the first step is to clearly articulate
 the research question. This serves as the basis for identifying concept
@@ -40,19 +36,14 @@ the directory of search results is given, the **import\_naive\_results**
 function automatically finds the database and file type of each file,
 selects analogous columns and joins them to form a single dataset. This
 function imports the search results from a specified path. If the
-parameters ``clean_dataset`` and ``save_dataset`` are set to true, then the
+parameters clean\_dataset and save\_dataset are set to true, then the
 function de-duplicates search results after importing and saves the full
-search results to a .csv respectively. The parameter ``save_directory``
+search results to a .csv respectively. The parameter save\_directory
 contains the path to a directory where search results will be saved if
-``save_dataset`` is set to TRUE while the parameter path takes the path
+save\_dataset is set to TRUE while the parameter path takes the path
 containing the naive search results files. After the results are
 obtained a pandas data frame consisting of assembled search results is
-returned. 
-
-Keyword Extraction
-------------------------------------
-
-Extracting and Identifying Keywords [2]Rapid Automatic
+returned. ##Extracting and Identifying Keywords [2]Rapid Automatic
 Keyword Extraction (RAKE) is a well-known keyword extraction method
 which uses a list of stopwords and phrase delimiters to detect the most
 relevant words or phrases in a piece of text. The function
@@ -60,16 +51,11 @@ relevant words or phrases in a piece of text. The function
 keywords that only appear in a single article, and excludes phrases with
 only one word from the list of potential keywords resulting in a more
 precise search. Then with our method, the author- and database-tagged
-keywords are combined with the search terms.
-
-
-Co-occurrence Network 
-------------------------------------
-
-The author tagged and database tagged keywords are combined as dictionary
-object created with**extract\_terms** to define all possible keywords.
-All the possible keywords are then passed to the function **create\_dtm**.
-[3]Then there is a generation of a keyword cooccurrence network where each node
+keywords are combined with the search terms. The author tagged and
+database tagged keywords are combined as dictionary object created with
+**extract\_terms** to define all possible keywords. All the possible
+keywords are then passed to the function **create\_dtm**.[3]Then there
+is a generation of a keyword cooccurrence network where each node
 represents a potential search term and the edges arc co-occurrences of
 two terms in the title, abstract, or tagged keywords of a study, with
 the function **create\_network** which measures the importance of each
@@ -80,7 +66,7 @@ used by litsearchr is the measure of node importance. The function
 **get\_centrality** is used to rank nodes by strength and using genetic
 algorithm finds knots since there are regions of rapid change where
 nodes become increasingly more important due to the fact that the node
-strength of a network tends to follow a power law.
+strength of a network tends to follow a power law. ##\ **References**
 
 [1]E. Stillman, "Introduction to litsearchr with an example of writing a
 systematic review search strategy for black-backed woodpecker occupancy

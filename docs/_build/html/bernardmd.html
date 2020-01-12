@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>About this project &#8212; Ananse 1.0.0 documentation</title>
+    <title>Preparing a Search Strategy for a Systematic Review &#8212; Ananse 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -12,11 +12,9 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/language_data.js"></script>
-    <link rel="author" title="About these documents" href="#" />
+    <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Guide" href="guide.html" />
-    <link rel="prev" title="Ananse Documentation" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -48,11 +46,9 @@
 
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">About this project</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#preparing-a-search-strategy-for-a-systematic-review">Preparing a Search Strategy for a Systematic Review</a></li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html#preparing-a-search-strategy-for-a-systematic-review">Preparing a Search Strategy for a Systematic Review</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code.html">Code docs</a></li>
 </ul>
@@ -61,8 +57,6 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Ananse Documentation</a></li>
-      <li>Next: <a href="guide.html" title="next chapter">Guide</a></li>
   </ul></li>
 </ul>
 </div>
@@ -92,18 +86,14 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="about-this-project">
-<h1>About this project<a class="headerlink" href="#about-this-project" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">Ananse</span></code> package is a python implementation of the <code class="docutils literal notranslate"><span class="pre">litsearchr</span></code> R package  designed to partially automate search term selection and writing search strategies for systematic reviews.</p>
-<div class="section" id="preparing-a-search-strategy-for-a-systematic-review">
-<h2>Preparing a Search Strategy for a Systematic Review<a class="headerlink" href="#preparing-a-search-strategy-for-a-systematic-review" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="preparing-a-search-strategy-for-a-systematic-review">
+<h1>Preparing a Search Strategy for a Systematic Review<a class="headerlink" href="#preparing-a-search-strategy-for-a-systematic-review" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="report-by">
-<h3>Report by:<a class="headerlink" href="#report-by" title="Permalink to this headline">¶</a></h3>
+<h2>Report by:<a class="headerlink" href="#report-by" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Bernard Atiemo Asare</p></li>
 <li><p>Amma Frimpomaa Frimpong-Boateng</p></li>
 </ul>
-</div>
 <div class="section" id="writing-the-naive-search-and-importing-the-results">
 <h3>Writing the Naïve Search and Importing the Results:<a class="headerlink" href="#writing-the-naive-search-and-importing-the-results" title="Permalink to this headline">¶</a></h3>
 <p>[1]When writing a naive search, the first step is to clearly articulate
@@ -130,18 +120,14 @@ the directory of search results is given, the <strong>import_naive_results</stro
 function automatically finds the database and file type of each file,
 selects analogous columns and joins them to form a single dataset. This
 function imports the search results from a specified path. If the
-parameters <code class="docutils literal notranslate"><span class="pre">clean_dataset</span></code> and <code class="docutils literal notranslate"><span class="pre">save_dataset</span></code> are set to true, then the
+parameters clean_dataset and save_dataset are set to true, then the
 function de-duplicates search results after importing and saves the full
-search results to a .csv respectively. The parameter <code class="docutils literal notranslate"><span class="pre">save_directory</span></code>
+search results to a .csv respectively. The parameter save_directory
 contains the path to a directory where search results will be saved if
-<code class="docutils literal notranslate"><span class="pre">save_dataset</span></code> is set to TRUE while the parameter path takes the path
+save_dataset is set to TRUE while the parameter path takes the path
 containing the naive search results files. After the results are
 obtained a pandas data frame consisting of assembled search results is
-returned.</p>
-</div>
-<div class="section" id="keyword-extraction">
-<h3>Keyword Extraction<a class="headerlink" href="#keyword-extraction" title="Permalink to this headline">¶</a></h3>
-<p>Extracting and Identifying Keywords [2]Rapid Automatic
+returned. ##Extracting and Identifying Keywords [2]Rapid Automatic
 Keyword Extraction (RAKE) is a well-known keyword extraction method
 which uses a list of stopwords and phrase delimiters to detect the most
 relevant words or phrases in a piece of text. The function
@@ -149,14 +135,11 @@ relevant words or phrases in a piece of text. The function
 keywords that only appear in a single article, and excludes phrases with
 only one word from the list of potential keywords resulting in a more
 precise search. Then with our method, the author- and database-tagged
-keywords are combined with the search terms.</p>
-</div>
-<div class="section" id="co-occurrence-network">
-<h3>Co-occurrence Network<a class="headerlink" href="#co-occurrence-network" title="Permalink to this headline">¶</a></h3>
-<p>The author tagged and database tagged keywords are combined as dictionary
-object created with**extract_terms** to define all possible keywords.
-All the possible keywords are then passed to the function <strong>create_dtm</strong>.
-[3]Then there is a generation of a keyword cooccurrence network where each node
+keywords are combined with the search terms. The author tagged and
+database tagged keywords are combined as dictionary object created with
+<strong>extract_terms</strong> to define all possible keywords. All the possible
+keywords are then passed to the function <strong>create_dtm</strong>.[3]Then there
+is a generation of a keyword cooccurrence network where each node
 represents a potential search term and the edges arc co-occurrences of
 two terms in the title, abstract, or tagged keywords of a study, with
 the function <strong>create_network</strong> which measures the importance of each
@@ -167,7 +150,7 @@ used by litsearchr is the measure of node importance. The function
 <strong>get_centrality</strong> is used to rank nodes by strength and using genetic
 algorithm finds knots since there are regions of rapid change where
 nodes become increasingly more important due to the fact that the node
-strength of a network tends to follow a power law.</p>
+strength of a network tends to follow a power law. ##<strong>References</strong></p>
 <p>[1]E. Stillman, “Introduction to litsearchr with an example of writing a
 systematic review search strategy for black-backed woodpecker occupancy
 of post-fire forest systems”, Elizagrames.github.io, 2020. [Online].
@@ -198,7 +181,7 @@ Available:
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="_sources/about.rst.txt"
+      <a href="_sources/bernardmd.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
