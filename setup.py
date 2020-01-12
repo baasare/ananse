@@ -6,7 +6,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 setuptools.setup(
      name='ananse',  
-     version='0.1',
+     version='1.0',
      scripts=['ananse'] ,
      author="Bernard Atiemo Asare",
      author_email="asarebernard98@gmail.com",
@@ -17,13 +17,14 @@ setuptools.setup(
      url="https://github.com/baasare/ananse",
      packages=setuptools.find_packages(),
      setup_requires=[
-         'numpy',
-         'pandas',
-         'nltk',
-         'rake_nltk',
-         'matplotlib',
-         'sklearn',
-         'scipy',
+         'numpy==1.18.0',
+         'pandas==0.25.3',
+         'nltk==3.4.5',
+         'rake-nltk==1.0.4',
+         'matplotlib==3.1.2',
+         'scikit-learn==0.22',
+         'scipy==1.4.1',
+         'networkx==2.4'
          ],
      classifiers=[
          "Programming Language :: Python :: 3",
