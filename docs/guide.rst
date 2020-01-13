@@ -54,7 +54,7 @@ Quick start
     reduced_graph, nodes = review.reduce_graph(graph_network, "degree", cutoff_strengths)
 
     #get suggested keywords and save to a csv file
-    suggested_keywords = review.get_keywords(reduced_graph)
+    suggested_keywords = review.get_keywords(reduced_graph, save_network=True)
     for word in suggested_keywords:
        print(word)
 
