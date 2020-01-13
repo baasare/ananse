@@ -495,22 +495,19 @@ class Ananse(object):
 
         return reduced_graph, importance_nodes
 
-    def get_keywords(self, g, importance_method, cutoff_strengths, save_network=True, save_directory=None):
+    def get_keywords(self, reduced_graph, save_keywords=True, save_directory=None):
         """
 
-        :param g: graph
-        :param importance_method: method to use to check node importance
-        :param cutoff_strengths: cut off of the graph
-        :param save_network: if save_network=True saves the keywords to a .csv
+        :param reduced_graph: a reduced graph consisting of only important nodes(keywords)
+        :param save_keywords: if save_keywords=True, saves the keywords to a .csv
         :param save_directory: path to a directory where suggested keywords will be saved if save_dataset is set to TRUE
         :return: suggested keywords for final review
         """
-        reduced_graph, importance_nodes = self.reduce_graph(g, importance_method, cutoff_strengths)
         keywords = [self.remove_punctuations(x) for x in reduced_graph.nodes()]
         suggested_keywords = [i for i in keywords if i]
         df = pd.DataFrame(suggested_keywords, columns=["keywords"])
 
-        if save_network:
+        if save_keywords:
             if save_directory is not None:
                 df.to_csv(r"{}".format(save_directory + 'relevant_keywords.csv'), index=False)
             else:

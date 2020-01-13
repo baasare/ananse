@@ -49,7 +49,6 @@
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="about.html">About this project</a></li>
-<li class="toctree-l1"><a class="reference internal" href="about.html#preparing-a-search-strategy-for-a-systematic-review">Preparing a Search Strategy for a Systematic Review</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Code docs</a></li>
 </ul>
@@ -268,14 +267,12 @@ the degree distribution</p>
 
 <dl class="method">
 <dt id="ananse.Ananse.get_keywords">
-<code class="sig-name descname">get_keywords</code><span class="sig-paren">(</span><em class="sig-param">g</em>, <em class="sig-param">importance_method</em>, <em class="sig-param">cutoff_strengths</em>, <em class="sig-param">save_network=True</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse/ananse.html#Ananse.get_keywords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.get_keywords" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_keywords</code><span class="sig-paren">(</span><em class="sig-param">reduced_graph</em>, <em class="sig-param">save_keywords=True</em>, <em class="sig-param">save_directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ananse/ananse.html#Ananse.get_keywords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ananse.Ananse.get_keywords" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>g</strong> – graph</p></li>
-<li><p><strong>importance_method</strong> – method to use to check node importance</p></li>
-<li><p><strong>cutoff_strengths</strong> – cut off of the graph</p></li>
-<li><p><strong>save_network</strong> – if save_network=True saves the keywords to a .csv</p></li>
+<li><p><strong>reduced_graph</strong> – a reduced graph consisting of only important nodes(keywords)</p></li>
+<li><p><strong>save_keywords</strong> – if save_keywords=True, saves the keywords to a .csv</p></li>
 <li><p><strong>save_directory</strong> – path to a directory where suggested keywords will be saved if save_dataset is set to TRUE</p></li>
 </ul>
 </dd>

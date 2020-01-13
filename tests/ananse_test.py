@@ -1,10 +1,9 @@
 from ananse import Ananse
-import numpy as np
 
 
 def main():
     test_run = Ananse()
-    imports = test_run.import_naive_results(path=".")
+    imports = test_run.import_naive_results(path="./")
 
     data = test_run.deduplicate_dataframe(imports, ['title', 'abstract'])
 
@@ -24,7 +23,7 @@ def main():
 
     cutoff_strengths = test_run.find_cutoff(graph_network, "spline", "degree", degrees=2, knot_num=1, percent=0.8)
     reduced_graph, nodes = test_run.reduce_graph(graph_network, "degree", cutoff_strengths)
-    suggested_keywords = test_run.get_keywords(reduced_graph)
+    suggested_keywords = test_run.get_keywords(reduced_graph,  save_keywords=True)
     print(suggested_keywords)
 
 
