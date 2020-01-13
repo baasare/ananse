@@ -48,9 +48,10 @@ class Ananse(object):
         :return: cleaned string
         """
 
-        raw_string = raw_string.translate({ord(c): '' for c in "1234567890"})
+        text = str(raw_string)
+        text = text.translate({ord(c): '' for c in "1234567890"})
 
-        return raw_string.translate({ord(c): '' for c in self.bad_chars})
+        return text.translate({ord(c): '' for c in self.bad_chars})
 
     def import_naive_results(self, path, save_dataset=False, save_directory=None, clean_dataset=False):
         """
@@ -71,7 +72,7 @@ class Ananse(object):
         all_files = glob.glob(path + "*")
         for filename in all_files:
             if filename.endswith('.txt'):
-                df = pd.read_csv(filename, index_col=False, delimiter="\t", quotechar=None, quoting=3)
+                df = pd.read_csv(filename, index_col=False, delimiter="\t", quotechar=None, quoting=3, encoding='utf-8')
                 wos_li.append(df)
             elif filename.endswith('.csv'):
                 df = pd.read_csv(filename)
@@ -104,6 +105,7 @@ class Ananse(object):
             self.search_results['doi'] = list(wos_dataset['DI'])
             self.search_results['language'] = list(wos_dataset['LA'])
             self.search_results['database'] = (['WOS'] * len(wos_dataset.index))
+
         elif len(scopus_li) != 0:  # check to see if any scopus results was imported
 
             # concatenate files from same database into DataFrame
@@ -177,25 +179,25 @@ class Ananse(object):
         :return: a list consisting of  a combination of extracted keywords and author keyword
         """
         r = Rake(language='english', min_length=min_len, max_length=max_len,
-                 punctuations='!"#$%&\'()*+,-),./“:;≥•°≤<=|±+‘>©?@[\\]^_`{|}~')
+                 punctuations='!"#$%&\'()*+,-),./“:;≥≤<=|‘>©?@[\\]^_`{|}~')
 
         # Extraction using the text column the text.
         texts = list(DataFrame['text'])
 
         r.extract_keywords_from_sentences(texts)
-        self.raked_keywords = r.get_ranked_phrases()  # raked keywords
+        raked_keywords = r.get_ranked_phrases()  # raked keywords
 
         # Extract author keywords from naive search results and remove blank values
         author_keywords = list(DataFrame['keywords'])
-        self.real_keywords = [x.lower() for x in author_keywords if
-                              str(x) != 'nan']  # removing nan values from list of author keywords
+        real_keywords = [x.lower() for x in author_keywords if
+                         str(x) != 'nan']  # removing nan values from list of author keywords
 
         # merge all keywords and split into list
-        self.real_keywords = "".join(self.real_keywords)
-        self.real_keywords = self.real_keywords.split(";")
+        real_keywords = "".join(real_keywords)
+        real_keywords = real_keywords.split(";")
 
         # merge raked keywords with author keywords
-        keywords = self.raked_keywords + self.real_keywords
+        keywords = raked_keywords + real_keywords
 
         # loop through all keywords, remove every keyword with a digit in it and create new cleaned list
         digits_cleaned_all_keywords = [x for x in keywords if (any(char.isdigit() for char in x) == False)]
@@ -208,7 +210,7 @@ class Ananse(object):
         # Convert keyword list to set and then back to list to deduplicate keyword list
         all_keywords = list(set(all_keywords))
 
-        return self.all_keywords
+        return all_keywords
 
     def create_dtm(self, doc, keywords, min_len=2, max_len=3, dfm_type=""):
         """
@@ -219,7 +221,7 @@ class Ananse(object):
         :param max_len: maximum keyword length
         :param doc: a list of article title, abstract or any article property
         :param keywords: a list of keywords to use for the Document-Term Matrix
-        :param dfm_type: whether the dfm should be created based on document tokens or a restricted list of keywords
+        :param dfm_type: whether the dtm should be created based on document tokens or a restricted list of keywords
                 [token, keywords]
         :return: a multidimensional array of a Document-Term Matrix and a list of terms(columns)
         """
@@ -342,6 +344,7 @@ class Ananse(object):
         ax = fig.add_subplot(111)
         ax.plot([k for (k, v) in items], [v for (k, v) in items])
         plt.title("Network Distribution")
+        plt.figure()
         plt.show()
 
         if save_plot:
@@ -372,6 +375,8 @@ class Ananse(object):
         plt.xlabel("Degree")
         ax.set_xticks([d + 0.4 for d in deg])
         ax.set_xticklabels(deg)
+        plt.figure()
+        plt.show()
 
         if save_plot:
             if save_directory is not None:
@@ -397,6 +402,8 @@ class Ananse(object):
         plt.title("Degree rank plot")
         plt.ylabel("degree")
         plt.xlabel("rank")
+        plt.figure()
+        plt.show()
 
         if save_plot:
             if save_directory is not None:
@@ -426,8 +433,7 @@ class Ananse(object):
         :param k: B-spline order
         :return: fitted B-spline
         """
-        self.spline = interpolate.BSpline(t, c, k, extrapolate=False)
-        return self.spline
+        return interpolate.BSpline(t, c, k, extrapolate=False)
 
     def make_importance(self, g, importance_method):
         """
@@ -495,14 +501,17 @@ class Ananse(object):
 
         return reduced_graph, importance_nodes
 
-    def get_keywords(self, reduced_graph, save_keywords=True, save_directory=None):
+    def get_keywords(self, g, importance_method, cutoff_strengths, save_keywords=True, save_directory=None):
         """
 
-        :param reduced_graph: a reduced graph consisting of only important nodes(keywords)
-        :param save_keywords: if save_keywords=True, saves the keywords to a .csv
+        :param g: graph
+        :param importance_method: method to use to check node importance
+        :param cutoff_strengths: cut off of the graph
+        :param save_keywords: if save_keywords=True saves the keywords to a .csv
         :param save_directory: path to a directory where suggested keywords will be saved if save_dataset is set to TRUE
         :return: suggested keywords for final review
         """
+        reduced_graph, importance_nodes = self.reduce_graph(g, importance_method, cutoff_strengths)
         keywords = [self.remove_punctuations(x) for x in reduced_graph.nodes()]
         suggested_keywords = [i for i in keywords if i]
         df = pd.DataFrame(suggested_keywords, columns=["keywords"])

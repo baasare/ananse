@@ -56,15 +56,12 @@ Writing your own script
     review.plot_rank_degree_distribution(graph_network)
     review.plot_degree_histogram(graph_network)
 
-
     #Determine cutoff for the relevant keywords
-    cutoff_strengths = review.find_cutoff(graph_network, "spline", "degree", degrees=2, knot_num=1, percent=0.8)
-
-    #reduce graph with only relevant keywords 
-    reduced_graph, nodes = review.reduce_graph(graph_network, "degree", cutoff_strengths)
+    cutoff_strengths = review.find_cutoff(graph_network, "spline", "degree")
 
     #get suggested keywords and save to a csv file
-    suggested_keywords = review.get_keywords(reduced_graph, save_network=True)
+    suggested_keywords = review.review.get_keywords(graph_network, "degree", cutoff_strengths, save_keywords=True)
+    print("Suggested Keywords")
     for word in suggested_keywords:
        print(word)
 

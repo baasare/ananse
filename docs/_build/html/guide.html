@@ -142,17 +142,14 @@ python ananse/setup.py install
 <span class="n">review</span><span class="o">.</span><span class="n">plot_rank_degree_distribution</span><span class="p">(</span><span class="n">graph_network</span><span class="p">)</span>
 <span class="n">review</span><span class="o">.</span><span class="n">plot_degree_histogram</span><span class="p">(</span><span class="n">graph_network</span><span class="p">)</span>
 
-
 <span class="c1">#Determine cutoff for the relevant keywords</span>
-<span class="n">cutoff_strengths</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">find_cutoff</span><span class="p">(</span><span class="n">graph_network</span><span class="p">,</span> <span class="s2">&quot;spline&quot;</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">knot_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">percent</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-
-<span class="c1">#reduce graph with only relevant keywords</span>
-<span class="n">reduced_graph</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">reduce_graph</span><span class="p">(</span><span class="n">graph_network</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">cutoff_strengths</span><span class="p">)</span>
+<span class="n">cutoff_strengths</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">find_cutoff</span><span class="p">(</span><span class="n">graph_network</span><span class="p">,</span> <span class="s2">&quot;spline&quot;</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">)</span>
 
 <span class="c1">#get suggested keywords and save to a csv file</span>
-<span class="n">suggested_keywords</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">get_keywords</span><span class="p">(</span><span class="n">reduced_graph</span><span class="p">,</span> <span class="n">save_network</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">suggested_keywords</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">review</span><span class="o">.</span><span class="n">get_keywords</span><span class="p">(</span><span class="n">graph_network</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">cutoff_strengths</span><span class="p">,</span> <span class="n">save_keywords</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Suggested Keywords&quot;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">suggested_keywords</span><span class="p">:</span>
-   <span class="nb">print</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+   <span class="k">print</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Using Ananse Test Script</p>
@@ -173,7 +170,7 @@ python ananse/setup.py install
       &copy;2020, Bernard Atiemo Asare & Amma Frimpomaa Frimpong-Boateng.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

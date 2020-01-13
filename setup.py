@@ -6,7 +6,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 
 __project__ = "ananse"
-__version__ = "0.0.1"
+__version__ = "1.0.6"
 __description__ = "A python package to partially automate search term selection and writing search strategies for systematic reviews"
 __long_description__ = long_description
 __long_description_content_type__ = "text/markdown"
@@ -14,14 +14,39 @@ __packages__ = ["ananse"]
 __author__ = "Bernard Atiemo Asare, Amma Frimpomaa Frimpong-Boateng"
 __author_email__ = "asarebernard98@gmail.com, Ammafrimps123@gmail.com"
 __requires__ = [
-         'numpy',
-         'pandas',
-         'nltk',
-         'rake_nltk',
-         'matplotlib',
-         'sklearn',
-         'scipy',
-         'networkx'
+    'bleach',
+    'certifi',
+    'cycler',
+    'decorator',
+    'docutils',
+    'importlib_metadata',
+    'joblib',
+    'keyring',
+    'kiwisolver',
+    'matplotlib',
+    'more_itertools',
+    'networkx',
+    'nltk',
+    'numpy',
+    'pandas',
+    'pkginfo',
+    'Pygments',
+    'pyparsing',
+    'python_dateutil',
+    'pytz',
+    'pywin32_ctypes',
+    'rake_nltk',
+    'readme_renderer',
+    'requests_toolbelt',
+    'scikit_learn',
+    'scipy',
+    'six',
+    'sklearn',
+    'tqdm',
+    'twine',
+    'webencodings',
+    'wincertstore',
+    'zipp',
          ]
 __classifiers__ = [
     "Development Status :: 3 - Alpha",
@@ -42,4 +67,5 @@ setup(
     author_email = __author_email__,
     classifiers = __classifiers__,
     requires = __requires__,
+    install_requires = __requires__
 )
