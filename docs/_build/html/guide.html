@@ -114,6 +114,7 @@ python ananse/setup.py install
 </div>
 <div class="section" id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<p>Writing your own script</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ananse</span> <span class="kn">import</span> <span class="n">Ananse</span>
 
 <span class="c1"># Create an object of the package</span>
@@ -152,6 +153,10 @@ python ananse/setup.py install
 <span class="n">suggested_keywords</span> <span class="o">=</span> <span class="n">review</span><span class="o">.</span><span class="n">get_keywords</span><span class="p">(</span><span class="n">reduced_graph</span><span class="p">,</span> <span class="n">save_network</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">suggested_keywords</span><span class="p">:</span>
    <span class="nb">print</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using Ananse Test Script</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python tests/ananse_test
 </pre></div>
 </div>
 </div>

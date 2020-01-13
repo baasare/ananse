@@ -19,7 +19,9 @@ git clone https://github.com/baasare/ananse.git
 python ananse/setup.py install
 ```
 
-## Quick start              
+## Quick start        
+### Writing your own script
+
 
 ```python
 from ananse import Ananse
@@ -63,7 +65,12 @@ for word in suggested_keywords:
 
 
 ```
+### Using Ananse Test Script
 
+
+```bash
+python tests/ananse_test
+```
 
 ## References
 

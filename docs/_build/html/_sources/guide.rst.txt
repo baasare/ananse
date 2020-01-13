@@ -24,6 +24,8 @@ Directly from the repository
 
 Quick start
 -----------
+Writing your own script
+
 
 .. code:: python
 
@@ -66,3 +68,8 @@ Quick start
     for word in suggested_keywords:
        print(word)
 
+Using Ananse Test Script
+
+.. code:: bash
+
+    python tests/ananse_test
