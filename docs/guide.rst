@@ -1,13 +1,21 @@
 Guide
 ======
+Ananse requires python 3.7 or higher
 
 
 
 Setup
 -----
 
-Directly from the repository
+Using pip
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: bash
+
+    pip install ananse
+
+Directly from the repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 

@@ -11,3 +11,4 @@ venv/
 ananse.egg-info/
 dist/
 build/
+.pypirc
