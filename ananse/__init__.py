@@ -1,1 +1,1 @@
-from ananse.ananse import Ananse
+from .ananse import Ananse
