@@ -168,6 +168,30 @@ used by litsearchr is the measure of node importance. The function
 algorithm finds knots since there are regions of rapid change where
 nodes become increasingly more important due to the fact that the node
 strength of a network tends to follow a power law.</p>
+</div>
+<div class="section" id="identifying-important-nodes-using-the-full-network">
+<h3>Identifying Important nodes using the full network<a class="headerlink" href="#identifying-important-nodes-using-the-full-network" title="Permalink to this headline">¶</a></h3>
+<p>There are two methods to identify important nodes in the litsearchr
+package:</p>
+<p>1)Fitting a spline model to the node importance to select tipping points</p>
+<p>2)Finding the minimum number of nodes to capture a large percent of the
+total importance of the network.(Cumulative Approach)</p>
+<p>Depending on the distribution and preference one can decide which method
+to use. In choosing a method the first thing to do is to look at the
+distribution of node importance. The distribution can be plotted with the
+function <strong>plot_degree_distribution</strong>, <strong>plot_rank_degree_distribution</strong> or
+<strong>plot_degree_histogram</strong></p>
+<p>A spline model for finding cutoff is an appropriate method to identify the
+cutoff threshold for keyword importance if the rank distribution plot has
+a lot of fairly weak nodes with a long tail.The cumulative approach is more
+appropriate when there are no clear breaks in the data.</p>
+<p>The <strong>find_cutoff</strong> function finds the cutoff for a graph network using
+either cumulative or spline method of cutting of the degree
+distribution. Then the <strong>reduce_graph</strong> function generates a graph
+consisting of only important nodes after which the <strong>get_keyword</strong>
+function extract the keywords from the reduced network.</p>
+<p>For this project, the databases supported were mainly Web
+Of Science and Scopus.</p>
 <p>[1]E. Stillman, “Introduction to litsearchr with an example of writing a
 systematic review search strategy for black-backed woodpecker occupancy
 of post-fire forest systems”, Elizagrames.github.io, 2020. [Online].

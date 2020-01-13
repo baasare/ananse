@@ -82,6 +82,37 @@ algorithm finds knots since there are regions of rapid change where
 nodes become increasingly more important due to the fact that the node
 strength of a network tends to follow a power law.
 
+Identifying Important nodes using the full network
+--------------------------------------------------
+
+There are two methods to identify important nodes in the litsearchr
+package:
+
+1)Fitting a spline model to the node importance to select tipping points
+
+2)Finding the minimum number of nodes to capture a large percent of the
+total importance of the network.(Cumulative Approach)
+
+Depending on the distribution and preference one can decide which method
+to use. In choosing a method the first thing to do is to look at the
+distribution of node importance. The distribution can be plotted with the
+function **plot\_degree\_distribution**, **plot\_rank\_degree\_distribution** or 
+**plot\_degree\_histogram**
+
+A spline model for finding cutoff is an appropriate method to identify the 
+cutoff threshold for keyword importance if the rank distribution plot has 
+a lot of fairly weak nodes with a long tail.The cumulative approach is more 
+appropriate when there are no clear breaks in the data.
+
+The **find\_cutoff** function finds the cutoff for a graph network using
+either cumulative or spline method of cutting of the degree
+distribution. Then the **reduce\_graph** function generates a graph
+consisting of only important nodes after which the **get\_keyword**
+function extract the keywords from the reduced network.
+
+For this project, the databases supported were mainly Web
+Of Science and Scopus.
+
 [1]E. Stillman, "Introduction to litsearchr with an example of writing a
 systematic review search strategy for black-backed woodpecker occupancy
 of post-fire forest systems", Elizagrames.github.io, 2020. [Online].
