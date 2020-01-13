@@ -67,7 +67,7 @@ Co-occurrence Network
 ------------------------------------
 
 The author tagged and database tagged keywords are combined as dictionary
-object created with**extract\_terms** to define all possible keywords.
+object created with **extract\_terms** to define all possible keywords.
 All the possible keywords are then passed to the function **create\_dtm**.
 [3]Then there is a generation of a keyword cooccurrence network where each node
 represents a potential search term and the edges arc co-occurrences of
