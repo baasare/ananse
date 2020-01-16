@@ -5,8 +5,7 @@
 
 Ananse Documentation
 ==================================
-The ``Ananse`` package is a python implementation of the ``litsearchr``
-R package designed to partially automate search term selection and
+The ``Ananse`` package is a python package designed to partially automate search term selection and
 writing search strategies for systematic reviews. Read the documentation
 at
 `baasare.github.io/ananse <https://baasare.github.io/ananse/_build/html/index.html>`__
