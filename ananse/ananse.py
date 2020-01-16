@@ -1,12 +1,14 @@
 import re
 import glob
+import operator
 import collections
 import numpy as np
 import pandas as pd
 import networkx as nx
-from rake_nltk import Rake
+from RISparser import readris
 import matplotlib.pyplot as plt
 from itertools import combinations
+from rake_nltk import Rake, Metric
 import scipy.interpolate as interpolate
 from sklearn.feature_extraction.text import CountVectorizer
 
@@ -25,20 +27,20 @@ class Ananse(object):
 
         self.wos_li = []
         self.scopus_li = []
-        self.regex = re.compile('[@_!#$%^&*()<>?•°/|}{~:]')
         self.columns = ['title', 'abstract']
+
+        self.regex = re.compile('[@_!#$%^&*()’<>?±+•°/|`\'\"^-©}{~:;]')
         self.raked_keywords = []
         self.real_keywords = []
         self.all_keywords = []
         self.terms = []
+
         self.centrality = ""
         self.dfm_dataframe = pd.DataFrame()
-        # self.t, self.c, self.k, self.spline = None
-        self.cut_strengths = []
-        self.deg_seq = {}
+
         self.network_graph = nx.Graph()
         self.bad_chars = ['•', '°', ';', ':', '!', '?', "*", '[', ']', '}', '{', '@', '~', '_', '#', '$', '%', '^', '&',
-                          '(', ')', '<', '>', '/', '|', '±', '+', '-', '©', '`', '’', "'"]
+                          '(', ')', '<', '>', '/', '|', '±', '+', '©', '`', '’', "'"]
 
     def remove_punctuations(self, raw_string):
         """
@@ -66,6 +68,7 @@ class Ananse(object):
 
         wos_li = []
         scopus_li = []
+        jstor_li = []
 
         # import all files in the directory, automatically detect on file name extension [supports WOS and Scopus]
 
@@ -77,15 +80,29 @@ class Ananse(object):
             elif filename.endswith('.csv'):
                 df = pd.read_csv(filename)
                 scopus_li.append(df)
+            elif filename.endswith('.ris'):
+                with open(filename, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
 
-        # check if anything was imported
+                with open(filename, "w", encoding='utf-8') as f:
+                    strings = ("Provider", "Database", "Content")
+                    for line in lines:
+                        if not any(s in line for s in strings):
+                            f.write(line)
+
+                with open(filename, 'r', encoding='utf-8') as bibliography_file:
+                    entries = list(readris(bibliography_file))
+                    for entry in entries:
+                        jstor_li.append(entry)
+
+
         if len(wos_li) != 0:  # check to see if any web of science results was imported
 
             # concatenate files from same database into DataFrame
             wos_dataset = pd.concat(wos_li, axis=0, ignore_index=True)
 
             # merge article titles and abstract to form text from which keywords will be extracted
-            text = list(wos_dataset[['TI', 'AB']].apply(lambda x: '{}{}'.format(x[0], x[1]), axis=1))
+            text = list(wos_dataset[['AB', 'TI']].apply(lambda x: '{}{}'.format(x[0], x[1]), axis=1))
             wos_text = [self.remove_punctuations(t) for t in text]
 
             self.search_results['id'] = list(wos_dataset['UT'])
@@ -106,12 +123,12 @@ class Ananse(object):
             self.search_results['language'] = list(wos_dataset['LA'])
             self.search_results['database'] = (['WOS'] * len(wos_dataset.index))
 
-        elif len(scopus_li) != 0:  # check to see if any scopus results was imported
+        if len(scopus_li) != 0:  # check to see if any scopus results was imported
 
             # concatenate files from same database into DataFrame
             scopus_dataset = pd.concat(scopus_li, axis=0, ignore_index=True)
 
-            text = list(scopus_dataset[['Title', 'Abstract']].apply(lambda x: '{}{}'.format(x[0], x[1]), axis=1))
+            text = list(scopus_dataset[['Abstract', 'Title']].apply(lambda x: '{}{}'.format(x[0], x[1]), axis=1))
             scopus_text = [self.remove_punctuations(t) for t in text]
 
             self.search_results['id'] = self.search_results['id'] + list(scopus_dataset['EID'])
@@ -133,6 +150,38 @@ class Ananse(object):
             self.search_results['language'] = self.search_results['language'] + (
                     ['English'] * len(scopus_dataset.index))
             self.search_results['database'] = self.search_results['database'] + list(scopus_dataset['Source'])
+
+        if len(jstor_li) != 0:  # check to see if any jstor results was imported
+            # concatenate files from same database into DataFrame
+            jstor_dataset = pd.DataFrame(jstor_li)
+
+            i = 0
+            for a, b in zip(jstor_dataset.abstract, jstor_dataset.authors):
+                jstor_dataset.at[i, 'abstract'] = str(a).translate({ord(c): '' for c in self.bad_chars})
+                jstor_dataset.at[i, 'authors'] = str(b).translate({ord(c): '' for c in self.bad_chars})
+                i = i + 1
+
+            text = list(jstor_dataset[['abstract', 'title']].apply(lambda x: '{}{}'.format(x[0], x[1]), axis=1))
+            jstor_text = [self.remove_punctuations(t) for t in text]
+
+            self.search_results['id'] = self.search_results['id'] + list(jstor_dataset['issn'])
+            self.search_results['text'] = self.search_results['text'] + jstor_text
+            self.search_results['title'] = self.search_results['title'] + list(jstor_dataset['title'])
+            self.search_results['abstract'] = self.search_results['abstract'] + list(jstor_dataset['abstract'])
+            self.search_results['keywords'] = self.search_results['keywords'] + (['NaN'] * len(jstor_dataset.index))
+            self.search_results['type'] = self.search_results['type'] + list(jstor_dataset['type_of_reference'])
+            self.search_results['authors'] = self.search_results['authors'] + list(jstor_dataset['type_of_reference'])
+            self.search_results['affiliation'] = self.search_results['affiliation'] + (
+                    ['NaN'] * len(jstor_dataset.index))
+            self.search_results['source'] = self.search_results['source'] + list(jstor_dataset['name_of_database'])
+            self.search_results['year'] = self.search_results['year'] + list(jstor_dataset['year'])
+            self.search_results['volume'] = self.search_results['volume'] + list(jstor_dataset['volume'])
+            self.search_results['issue'] = self.search_results['issue'] + list(jstor_dataset['number'])
+            self.search_results['startpage'] = self.search_results['startpage'] + list(jstor_dataset['start_page'])
+            self.search_results['endpage'] = self.search_results['endpage'] + list(jstor_dataset['end_page'])
+            self.search_results['doi'] = self.search_results['doi'] + list(jstor_dataset['doi'])
+            self.search_results['language'] = self.search_results['language'] + (['English'] * len(jstor_dataset.index))
+            self.search_results['database'] = self.search_results['database'] + list(jstor_dataset['name_of_database'])
 
         # merge all search database results into a dataframe
 
@@ -178,8 +227,8 @@ class Ananse(object):
         :param max_len: maximum keyword length
         :return: a list consisting of  a combination of extracted keywords and author keyword
         """
-        r = Rake(language='english', min_length=min_len, max_length=max_len,
-                 punctuations='!"#$%&\'()*+,-),./“:;≥≤<=|‘>©?@[\\]^_`{|}~')
+        r = Rake(language='english', punctuations='!"#$%&\'()*+,-),./“:;≥≤<=|‘>©?@[\\]^_`{|}~',
+                 ranking_metric=Metric.WORD_DEGREE)
 
         # Extraction using the text column the text.
         texts = list(DataFrame['text'])
@@ -202,17 +251,18 @@ class Ananse(object):
         # loop through all keywords, remove every keyword with a digit in it and create new cleaned list
         digits_cleaned_all_keywords = [x for x in keywords if (any(char.isdigit() for char in x) == False)]
 
-        regex = re.compile('[@_!#$%^&*()<>?•°/|}{~:]')
+        regex = re.compile('[@_!#$%^&""*..,≈·ακ⩽(∼苔草沼泽的no排放量天)<>?•η°/|}{~:]')
 
         # loop through all keywords, remove every keyword with a symbol in it using regex and create new cleaned list
-        all_keywords = [x for x in digits_cleaned_all_keywords if (regex.search(x) is None)]
+        all_keywords = [x.strip() for x in digits_cleaned_all_keywords if (regex.search(x) is None)]
 
         # Convert keyword list to set and then back to list to deduplicate keyword list
         all_keywords = list(set(all_keywords))
+        all_keywords.sort(reverse=False)
 
         return all_keywords
 
-    def create_dtm(self, doc, keywords, min_len=2, max_len=3, dfm_type=""):
+    def create_dtm(self, doc, min_len=2, max_len=3, **kwargs):
         """
         This method creates a Document-Term Matrix
 
@@ -222,19 +272,29 @@ class Ananse(object):
         :param doc: a list of article title, abstract or any article property
         :param keywords: a list of keywords to use for the Document-Term Matrix
         :param dfm_type: whether the dtm should be created based on document tokens or a restricted list of keywords
-                [token, keywords]
+                options: token or keywords
         :return: a multidimensional array of a Document-Term Matrix and a list of terms(columns)
         """
+
+        keywords = kwargs.get('keywords', None)
+        dfm_type = kwargs.get('dfm_type', None)
 
         doc = list(doc)
         cleaned_list = [str(x) for x in doc if str(x) != 'nan']
         doc_set = cleaned_list
 
-        vec = CountVectorizer(ngram_range=(min_len, max_len))
+        vec = CountVectorizer(ngram_range=(min_len, max_len), lowercase=True)
 
-        if dfm_type.lower() == "token":
-            tf = vec.fit_transform(doc_set)
-        elif dfm_type == "" or dfm_type.lower() == "keywords":
+        if dfm_type:
+            if dfm_type.lower() == "token":
+                tf = vec.fit_transform(doc_set)
+            elif dfm_type.lower() == "keywords":
+                if keywords:
+                    vec.fit(keywords)
+                    tf = vec.transform(doc_set)
+                else:
+                    tf = vec.fit_transform(doc_set)
+        else:
             if keywords:
                 vec.fit(keywords)
                 tf = vec.transform(doc_set)
@@ -242,6 +302,7 @@ class Ananse(object):
                 tf = vec.fit_transform(doc_set)
 
         self.terms = vec.get_feature_names()
+        self.terms.sort(reverse=False)
 
         return tf.toarray(), self.terms
 
@@ -272,14 +333,14 @@ class Ananse(object):
 
         A = im
 
-        keywords.sort()
+        #         keywords.sort()
         nodes = [i for i in range(len(keywords))]
         edges = []
 
         for row in A:
             # loop through all rows(article) in multidimensional array and the index of each column(keyword) with
             # a value of 1 and store the column indices in a list
-            x = [i for i, e in enumerate(list(row)) if e == 1]
+            x = [i for i, e in enumerate(list(row)) if e >= 1]
             # make a combination of this column indices to show how their connection (edge)
             perm = combinations(x, 2)
             for i in list(perm):
@@ -298,7 +359,7 @@ class Ananse(object):
 
         if draw_graph:
             plt.figure(figsize=(12, 12))
-            nx.draw_networkx(H, with_label=True, pos=nx.spring_layout(H))
+            nx.draw_networkx(H, with_label=True)
             if save_network:
                 if save_directory is not None:
                     plt.savefig(r"{}".format(save_directory + "simple_path.png.png"))
@@ -313,16 +374,22 @@ class Ananse(object):
 
         :param g: a graph from which you find its node importance
         :param method: the method for finding the node importance
+                        degree, closeness, betweenness or eigenvalue
         :return: a dictionary containing nodes with their importance
         """
         if method.lower() == "degree":
-            self.centrality = nx.degree_centrality(g)
+            self.centrality = dict(g.degree())
         elif method.lower() == "closeness":
             self.centrality = nx.closeness_centrality(g)
         elif method.lower() == "betweenness":
             self.centrality = nx.betweenness_centrality(g)
+        elif method.lower() == "eigenvalue":
+            self.centrality = nx.eigenvector_centrality(g)
 
-        return self.centrality
+        self.centrality = sorted(self.centrality.items(), key=operator.itemgetter(1),
+                                 reverse=False)  # returns a list of tuples
+
+        return dict(self.centrality)
 
     def plot_degree_distribution(self, g, save_plot=False, save_directory=None):
         """
@@ -333,25 +400,21 @@ class Ananse(object):
         :param save_directory: the path to a directory where search results will be saved if save_plot is set to TRUE
         :return:
         """
-        for n in g.nodes():
-            deg = g.degree(n)
-            if deg not in self.deg_seq:
-                self.deg_seq[deg] = 0
-            self.deg_seq[deg] += 1
 
-        items = sorted(self.deg_seq.items())
-        fig = plt.figure(figsize=(12, 12), dpi=80)
-        ax = fig.add_subplot(111)
-        ax.plot([k for (k, v) in items], [v for (k, v) in items])
-        plt.title("Network Distribution")
-        plt.figure()
+        importance_data = self.make_importance(g, "degree")
+
+        fig, ax = plt.subplots(figsize=(12, 12), dpi=80)
+        plt.plot(importance_data["rank"], importance_data["importance"], 'o')
+        plt.title("Ranked Node Strengths")
+        plt.ylabel("Node Strength")
+        plt.xlabel("Rank")
         plt.show()
 
         if save_plot:
             if save_directory is not None:
                 fig.savefig(r"{}".format(save_directory + "degree_distribution.png"))
             else:
-                fig.savefig("degree_distribution.png")
+                fig.savefig("ranked_node_strength.png")
 
     def plot_degree_histogram(self, g, save_plot=False, save_directory=None):
         """
@@ -362,13 +425,13 @@ class Ananse(object):
         :param save_directory: the path to a directory where search results will be saved if save_plot is set to TRUE
         :return:
         """
-        degree_sequence = sorted([d for n, d in g.degree()], reverse=True)  # degree sequence
+        degree_sequence = sorted([d for n, d in g.degree()], reverse=False)  # degree sequence
 
         degreeCount = collections.Counter(degree_sequence)
         deg, cnt = zip(*degreeCount.items())
 
         fig, ax = plt.subplots(figsize=(12, 12), dpi=80)
-        plt.bar(deg, cnt, width=0.80, color='b')
+        plt.bar(deg, cnt, width=0.7, color='b')
 
         plt.title("Degree Histogram")
         plt.ylabel("Count")
@@ -384,33 +447,6 @@ class Ananse(object):
             else:
                 fig.savefig("degree_distribution.png")
 
-    def plot_rank_degree_distribution(self, g, save_plot=False, save_directory=None):
-        """
-        This methods plots a rank degree distribution of the graph
-
-        :param g: graph whose degree distribution is to be plotted
-        :param save_plot: if save_plot=True saves the plot to a .png
-        :param save_directory: the path to a directory where search results will be saved if save_plot is set to TRUE
-        :return:
-        """
-        degree_sequence = sorted([d for n, d in g.degree()], reverse=True)
-        d_max = max(degree_sequence)
-
-        fig = plt.figure(figsize=(12, 12), dpi=80)
-        fig.add_subplot(111)
-        plt.loglog(degree_sequence, 'b-', marker='o')
-        plt.title("Degree rank plot")
-        plt.ylabel("degree")
-        plt.xlabel("rank")
-        plt.figure()
-        plt.show()
-
-        if save_plot:
-            if save_directory is not None:
-                fig.savefig(r"{}".format(save_directory + "degree_distribution.png"))
-            else:
-                fig.savefig("rank_degree_distribution.png")
-
     def find_knots(self, x, y, degrees, knot_num=1):
         """
         This method find the knots of a two sets of values
@@ -421,8 +457,8 @@ class Ananse(object):
         :param knot_num: number of knots of the spline
         :return: t = knots, c = spline coefficients, k = B-spline order
         """
-        t, c, k = interpolate.splrep(x, y, k=degrees, s=knot_num)
-        return t, c, k
+        spl = interpolate.splrep(x, y, k=degrees, s=knot_num)
+        return spl
 
     def fit_spline(self, t, c, k):
         """
@@ -433,7 +469,7 @@ class Ananse(object):
         :param k: B-spline order
         :return: fitted B-spline
         """
-        return interpolate.BSpline(t, c, k, extrapolate=False)
+        return interpolate.BSpline(t, c, k)
 
     def make_importance(self, g, importance_method):
         """
@@ -443,8 +479,12 @@ class Ananse(object):
         :param importance_method: method to use to check node importance
         :return: a data frame of rank, node importance and node name
         """
+
         centrality = self.get_centrality(g, importance_method)
         rank = [i + 1 for i in range(len(centrality))]
+
+        centrality = {k: v for k, v in centrality.items() if not str(k).isdigit()}
+
         importance = list(centrality.values())
         node_names = list(centrality.keys())
         lis = [list(a) for a in zip(rank, importance, node_names)]
@@ -452,7 +492,7 @@ class Ananse(object):
 
         return importance_data
 
-    def find_cutoff(self, g, method, importance_method, degrees=2, knot_num=1, percent=0.8):
+    def find_cutoff(self, g, method, importance_method, degrees=2, knot_num=1, percent=0.2, diagnostics=False):
         """
         This method finds the cutoff for a graph network using either cumulative or spline method of cutting of
         the degree distribution
@@ -468,51 +508,63 @@ class Ananse(object):
 
         importance_data = self.make_importance(g, importance_method)
         if method.lower() == "spline":
-            knots, c, k = self.find_knots(list(importance_data["rank"]), importance_data["importance"], degrees,
-                                          knot_num)
-            cut_points = [np.floor(x) for x in list(knots)]
-            self.cut_strengths = list(list(importance_data.importance)[int(i - 1)] for i in cut_points)
+            spl = self.find_knots(list(importance_data["rank"]), importance_data["importance"], degrees,
+                                  knot_num)
+            knots, c, k = spl
+            cut_points = list(set([int(x) for x in np.floor(knots)]))
+            cutoff_df = importance_data[importance_data['rank'].isin(cut_points)]
+            cut_strengths = list(set(list(cutoff_df.importance)))
+            cut_strength = sorted(cut_strengths)[int(len(sorted(cut_strengths)) * (1.0 - percent))]
+
+            if diagnostics is True:
+                y2 = interpolate.splev(importance_data["rank"], spl)
+                plt.figure(figsize=(12, 12), dpi=80)
+                plt.plot(importance_data["rank"], importance_data["importance"], 'o', importance_data["rank"], y2)
+                [plt.axvline(_x, linewidth=1, color='r') for _x in cut_points]
+                plt.show()
+
         elif method.lower() == "cumulative":
-            cumulative_sum = np.cumsum(sorted(importance_data["importance"]))
-            cum_str = np.amax(cumulative_sum)
-            cut_point = [i for i in cumulative_sum if i >= (cum_str * percent)][0]
-            self.cut_strengths = list(sorted(importance_data["importance"]))[int(cut_point)]
+            cumulative_sum_asc = list(np.cumsum(sorted(importance_data["importance"], reverse=False)))
 
-        return self.cut_strengths
+            cumulative_strength = np.amax(np.cumsum(sorted(importance_data["importance"])))
+            cumulative_cut_point = [i for i in cumulative_sum_asc if i >= cumulative_strength * (1.0 - percent)][0]
 
-    def reduce_graph(self, g, importance_method, cutoff_strengths, draw_reduced_graph=False):
+            cumulative_cut_point_index = cumulative_sum_asc.index(cumulative_cut_point)
+            cut_strength = list(sorted(importance_data["importance"], reverse=False))[cumulative_cut_point_index]
+
+            if diagnostics is True:
+                plt.figure(figsize=(6, 6), dpi=80)
+                plt.plot(cumulative_sum_asc, 'o')
+                plt.title("Cumulative sum of ranked node importance")
+                plt.ylabel("Cumulative node importance")
+                plt.xlabel("Index")
+                plt.axvline(cumulative_cut_point_index, linewidth=1, color='r')
+                plt.show()
+
+        return cut_strength
+
+    def get_keywords(self, g, importance_method, cutoff_strength, save_keywords=True, save_directory=None,
+                     draw_reduced_graph=False):
         """
-        This methods generated a graph consisting of only important nodes
 
         :param g: graph
-        :param draw_reduced_graph: RUE, draws reduced graph
         :param importance_method: method to use to check node importance
-        :param cutoff_strengths: cut off of the graph
-        :return: a list of important nodes and a reduced graph of only important nodes
+        :param cutoff_strength:  where to cut off of the graph
+        :param save_keywords: if save_keywords=True saves the keywords to a .csv
+        :param save_directory: path to a directory where suggested keywords will be saved if save_dataset is set to TRUE
+        :param draw_reduced_graph: RUE, draws reduced graph
+        :return: suggested keywords for final review
         """
+
         importance_data = self.make_importance(g, importance_method)
-        if isinstance(cutoff_strengths, list):
-            cutoff_strengths = np.amax(cutoff_strengths)
-        importance_nodes = list(importance_data.loc[importance_data['importance'] > cutoff_strengths, "nodenames"])
-        reduced_graph = g.subgraph(importance_nodes)
+        keywords = list(importance_data.loc[importance_data['importance'] >= cutoff_strength, "nodenames"])
+        reduced_graph = g.subgraph(keywords)
 
         if draw_reduced_graph is True:
             nx.draw_networkx(reduced_graph, with_label=True, pos=nx.spring_layout(reduced_graph))
 
-        return reduced_graph, importance_nodes
-
-    def get_keywords(self, g, importance_method, cutoff_strengths, save_keywords=True, save_directory=None):
-        """
-
-        :param g: graph
-        :param importance_method: method to use to check node importance
-        :param cutoff_strengths: cut off of the graph
-        :param save_keywords: if save_keywords=True saves the keywords to a .csv
-        :param save_directory: path to a directory where suggested keywords will be saved if save_dataset is set to TRUE
-        :return: suggested keywords for final review
-        """
-        reduced_graph, importance_nodes = self.reduce_graph(g, importance_method, cutoff_strengths)
-        keywords = [self.remove_punctuations(x) for x in reduced_graph.nodes()]
+        keywords = [self.remove_punctuations(x) for x in keywords]
+        # check if keyword isn't an empty string
         suggested_keywords = [i for i in keywords if i]
         df = pd.DataFrame(suggested_keywords, columns=["keywords"])
 

@@ -1,7 +1,6 @@
 Code docs
 =========
 
-.. module:: ananse
 
-.. autoclass:: Ananse
+.. autoclass:: ananse.Ananse
     :members:
