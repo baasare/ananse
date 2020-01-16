@@ -6,7 +6,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 
 __project__ = "ananse"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __description__ = "A python package to partially automate search term selection and writing search strategies for systematic reviews"
 __long_description__ = long_description
 __long_description_content_type__ = "text/markdown"
@@ -36,6 +36,7 @@ __requires__ = [
     'pytz',
     'pywin32_ctypes',
     'rake_nltk',
+    'RISparser',
     'readme_renderer',
     'requests_toolbelt',
     'scikit_learn',
