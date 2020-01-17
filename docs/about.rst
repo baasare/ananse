@@ -1,6 +1,8 @@
 About this project
 ==========================
-The ``Ananse`` package is a python implementation of the ``litsearchr`` R package  designed to partially automate search term selection and writing search strategies for systematic reviews.
+This project is a collaboration between Dr. Effah Antwi,Research Scientist, Natural Resources Canada, Canadian Forest Service
+and Dr Wiafe Owusu-Banahene, Department of Computer Engineering, School of Engineering Sciences, University of Ghana, Legon, Accra, Ghana.
+The ``Ananse`` package is a python package  designed to partially automate search term selection and writing search strategies for systematic reviews. Read the documentation at [baasare.github.io/ananse](https://baasare.github.io/ananse/_build/html/index.html) and [ananse.readthedocs.io/](https://ananse.readthedocs.io/en/latest/)
 
 Preparing a Search Strategy for a Systematic Review
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
