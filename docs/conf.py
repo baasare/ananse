@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../'))
 
 project = 'ananse'
 copyright = '2020, Bernard Atiemo Asare & Amma Frimpomaa Frimpong-Boateng'
-author = 'Bernard Atiemo Asare & Amma Frimpomaa Frimpong-Boateng'
+author = 'Bernard Atiemo Asare, Amma Frimpomaa Frimpong-Boateng, Dr Wiafe Owusu-Banahene &  Dr. Effah Antwi'
 
 # The full version, including alpha/beta/rc tags
 release = '1.1.0'
